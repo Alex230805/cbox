@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "./Array.h"
 
 #define MALLOC(args,ret_ptr, cast)\
     ret_ptr = (cast)malloc(args);\
