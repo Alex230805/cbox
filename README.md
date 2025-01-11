@@ -31,7 +31,7 @@ An Example:
         ..................
 
 
-        free_trash(); // to ensure memory likage you need to call this before exit the execution;
+        free_trash(general_gc); // to ensure memory likage you need to call this before exit the execution;
         return 0;
     }
 
