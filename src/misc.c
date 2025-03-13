@@ -45,15 +45,7 @@ StringBuilder* read_file(char*path){
   sb->len = ftell(fp);
   fseek(fp, 0, SEEK_SET);
   MALLOC(sizeof(char)*sb->len+1, sb->string, char*);
-  for(size_t i=0;i<sb->len && !end;i++){
-    char c = fgetc(fp);
-    if(c == EOF){
-      end = true;
-    }else{
-      sb->string[i] = c;
-      len++;
-    }
-  }
+  fread(sb->string,sizeof(char), sb->len,fp);
   sb->string[len] = '\0'; 
   fclose(fp);
   return sb;
