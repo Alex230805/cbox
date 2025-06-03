@@ -1,4 +1,5 @@
-### ToolBox library
+### CBOX lib
 
 
-This is NOT a production ready library, it's an aggregation of multiple project that turn out to be usefull in multiple situations. There is no actual documentation other than the source code and the way it's build just work for me. 
+> [!WARNING]  
+> This is NOT a production ready library, it's an aggregation of multiple project that turn out to be usefull in multiple situations. There is no actual documentation other than the source code and the way it's build just work for me. 
