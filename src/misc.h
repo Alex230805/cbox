@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <ctype.h>
 
 #define u8t uint8_t
 #define u16t uint16_t
@@ -18,6 +19,13 @@
 #define DEBUG false
 #define POOL_SIZE 1024
 
+#if !(defined(PAGE_SIZE) || defined(PAGE_NUMBER))
+  
+  #define PAGE_SIZE 1 // in bytes   
+  #define PAGE_NUMBER 1024 // number of pages per arena. The length of the arena would be PAGE_SIZE*PAGE_NUMBER.
+
+#endif 
+
 
 typedef struct{
   void** address;
@@ -27,38 +35,87 @@ typedef struct{
 
 extern tb_gc general_gc;
 
-
 typedef struct{
   char*string;
-  size_t len;
+  int len;
 }StringBuilder;
-
+ 
+typedef struct Arena_alloc{
+  struct Arena_alloc* next;
+  int obj; // number or object allocated in memory
+  int pages;  // number of pages created in memory
+  int free_pages; // number of free pages
+  size_t* arena_start_ptr; // arena start pointer
+  int page_size; // page size 
+  int cursor; // cursor to navigate the allocated page in the array
+  size_t** pages_pointers; // page array reference
+  bool* allocated_page; // page flags
+}Arena_alloc;
 
 typedef struct{
-  char** buffer;
-  int len;
-}matrix2d;
+  int arena_count;
+  Arena_alloc* first_arena;
+  Arena_alloc* swap;
+  Arena_alloc* cursor;
+}Arena_header;
 
+
+
+#define TODO(string,...) \
+  fprintf(stdout,"[TODO]: "string"\n",__VA_ARGS__);
+
+#define ERROR(string,...) \
+  fprintf(stderr,"[ERROR]: "string"\n",__VA_ARGS__); \
+  exit(1);
+
+#define DINFO(string, ...) \
+  fprintf(stdout, "[DEBUG]: "string"\n", __VA_ARGS__); 
+
+#define NOTY(noty,string, ...) \
+  printf("["noty"]: "string"\n", __VA_ARGS__);
+
+#define WARNING(string,...) \
+  printf("[WARNING]: "string"\n", __VA_ARGS__);
+
+#define ARENA_ERROR(string) \
+  fprintf(stderr,"[ARENA ALLOCATOR ERROR]: "string"\n");
+
+
+
+#ifdef GC_IMP
 
 #define MALLOC(args,ret_ptr, cast)\
     ret_ptr = (cast)malloc(args);\
-    push_address(&general_gc, (void*)ret_ptr);
+    gc_push(&general_gc, (void*)ret_ptr);
 
-#define DINFO(string) \
-    printf("[ DEBUG INFO ] : "string"\n");
 
-#define INFO(string) \
-    printf("[ INFO ] : "string"\n");
+void gc_init(tb_gc * gc);
+void gc_free(tb_gc * gc);
+void gc_push(tb_gc*gc, void* address);
 
-#define TODO(string)\
-    printf("- [ TODO ] -> "string"\n");
+#endif
 
-void init_gc(tb_gc * gc);
-void free_trash(tb_gc * gc);
-void push_address(tb_gc*gc, void* address);
-StringBuilder* read_file(char*path);
-matrix2d* split_string(StringBuilder* sb);
+// arena allocator
+void arena_create(Arena_header* arenah, int page_size, int page_count);
+void* arena_alloc(Arena_header* arenah ,size_t size);
+void arena_free_area(Arena_alloc* arena);
+void arena_free(Arena_header *arenah);
+
+
+// hex digit converter
+u8t hexStringConverter(char string[]);
+u8t hexDigitConverter(char s);
+
+
+
+// file 
 void write_file(StringBuilder *sb, char *path);
+StringBuilder* read_file(char*path);
+
+
+// static declaration
+extern Arena_header arenah;
+
 
 #ifndef MISC_IMP
 #define MISC_IMP

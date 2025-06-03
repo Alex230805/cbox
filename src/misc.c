@@ -1,23 +1,23 @@
 #define MISC_IMP
 
+#include "misc.h"
 
-#include <misc.h>
+#ifdef GC_IMP
 
-
-void init_gc(tb_gc *gc){
+void gc_init(tb_gc *gc){
   gc->address = (void**)malloc(sizeof(void*)*POOL_SIZE);
   gc->size = POOL_SIZE;
   gc->pointer = 0;
 }
 
-void free_trash(tb_gc*gc){
+void gc_free(tb_gc*gc){
   for(int i=0;i<gc->pointer;i++){
     free(gc->address[i]);
     gc->address[i] = NULL;
   }
 }
 
-void push_address(tb_gc*gc, void* address){
+void gc_push(tb_gc*gc, void* address){
   if(gc->pointer+1 >= POOL_SIZE){
     fprintf(stderr, "garbage collector full of trash man, check your code, this is unacceptable!\n");
     exit(1);
@@ -27,12 +27,12 @@ void push_address(tb_gc*gc, void* address){
   }
 }
 
-
+#endif
 
 StringBuilder* read_file(char*path){
-  if(DEBUG) DINFO("Reading file"); 
+  if(DEBUG) DINFO("Reading file", NULL); 
   StringBuilder *sb;
-  MALLOC(sizeof(StringBuilder), sb, StringBuilder*);
+  sb = (StringBuilder*)malloc(sizeof(StringBuilder));
   FILE * fp;
   fp = fopen(path, "r");
   bool end = false;
@@ -44,16 +44,16 @@ StringBuilder* read_file(char*path){
   fseek(fp, 0, SEEK_END);
   sb->len = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  MALLOC(sizeof(char)*sb->len+1, sb->string, char*);
+  //MALLOC(sizeof(char)*sb->len, sb->string, char*);
+  sb->string = (char*)malloc(sizeof(char)*sb->len);
   fread(sb->string,sizeof(char), sb->len,fp);
   sb->string[len] = '\0'; 
   fclose(fp);
   return sb;
-
 }
 
 void write_file(StringBuilder *sb, char *path){
-  if(DEBUG) DINFO("Writing file"); 
+  if(DEBUG) DINFO("Writing file", NULL); 
   FILE * fp;
   fp = fopen(path, "w");
   if(fp == NULL){
@@ -65,51 +65,113 @@ void write_file(StringBuilder *sb, char *path){
 }
 
 
-
-
-matrix2d* split_string(StringBuilder* sb){
-  if(DEBUG) DINFO("Splitting string into matrix2d"); 
-  int start = 0;
-  int count = 0;
-  bool end = false;
-  int col = 0;
-  matrix2d* buffer;
-  int chars = 0; 
-  MALLOC(sizeof(matrix2d),buffer,  matrix2d*);
-  
-  if(sb->len == 0){
-    buffer->len = 0;
-    buffer->buffer = NULL;
-    return buffer;
-  }
-  
-  for(size_t i=0;i<sb->len;i++){
-    if(sb->string[i] == ';') col += 1;
-  }
-  MALLOC(sizeof(matrix2d),buffer,  matrix2d*);
-  MALLOC(sizeof(char*)*col,buffer->buffer,  char**);
-
-  for(int j=0;j<col;j++){
-    for(size_t i=0;i<sb->len && !end;i++){
-      if(sb->string[i+start] != ';'){
-        count +=1;
-      }else{
-        end = true;
-      }
+u8t hexDigitConverter(char s){
+    if(isdigit(s)){
+        return s - '0';
+    }else{
+         return toupper(s) - 'A' + 10;
     }
-    end = false;
-    MALLOC(sizeof(char)*count+1,buffer->buffer[j],  char*);
-    for(int i=start;i<start+count;i++){
-      if(sb->string[i] != ' ' && sb->string[i] != '\n'){
-        buffer->buffer[j][chars] = sb->string[i];
-        chars++;
-      }
+}
+
+u8t hexStringConverter(char string[]){
+    uint8_t HexString = 0;
+    int len = strlen(string);
+    for(int i=0;i<len;i++){
+        if(!isxdigit(string[i]))
+            return -1;
+       int cache = hexDigitConverter(string[i]);
+       HexString = (HexString << 4) | cache; 
     }
-    buffer->buffer[j][chars] = '\0';
-    chars = 0;
-    buffer->len = col;
-    start = start+count+2;
-    count = 0;
+    return HexString;
+} 
+
+
+void arena_create(Arena_header* arenah, int page_size, int page_count){
+
+  Arena_alloc* arena = (Arena_alloc*)malloc(sizeof(Arena_alloc));
+  arena->obj = 0;
+  arena->pages = page_count;
+  arena->free_pages = page_count;
+  arena->arena_start_ptr = malloc(sizeof(size_t)*page_size*page_count);
+  arena->page_size = page_size;
+  arena->pages_pointers = malloc(sizeof(size_t*)*page_count);
+  arena->allocated_page = malloc(sizeof(bool)*page_count);
+  arena->next = NULL;
+
+  for(int i=0;i<page_count;i++){
+    arena->allocated_page[i] = false;
   }
-  return buffer;
+  for(int i=0;i<page_count;i++){
+    arena->pages_pointers[i] = &arena->arena_start_ptr[(i*page_size)];
+  }
+
+  arena->cursor = 0; 
+  arenah->swap = arenah->first_arena;
+  
+  if(arenah->arena_count == 0 && arenah->swap != NULL){
+    while ( arenah->swap->next != NULL) arenah->swap = arenah->swap->next;
+    arenah->swap->next = arena;
+    arenah->swap = NULL;
+    arenah->arena_count += 1;
+    arenah->cursor = arena;
+  }else{
+    arenah->first_arena = arena;
+    arenah->swap = NULL;
+    arenah->arena_count = 1;
+    arenah->cursor = arena;
+  }  
+}
+
+void* arena_alloc(Arena_header* arenah, size_t size){
+  Arena_alloc* arena = arenah->cursor;
+
+  if(arena->free_pages < 1){
+    int page_number = (int)size/(arena->page_size*arena->pages);
+    if(page_number > 0){
+      int pages = arena->pages;
+      while(pages <= page_number){
+        pages = pages*2;
+      }
+      arena_create(arenah, arena->page_size, pages);
+    }else{
+      arena_create(arenah, arena->page_size, arena->pages);
+    }
+    arena = arenah->cursor;
+  }
+  void* pointer = NULL; 
+
+  int number_of_required_pages = (int)( size / arena->page_size) + 1;
+  int i = 0;
+  for(i=0; i < number_of_required_pages;i++){
+    arena->allocated_page[arena->cursor+i] = true;
+  }
+  
+  pointer = (void*)arena->pages_pointers[arena->cursor];
+  arena->cursor = (arena->cursor + i) + 1;
+  arena->free_pages -= (i+1);
+
+  return pointer;
+}
+
+void arena_free_area(Arena_alloc* arena){
+  free(arena->allocated_page);
+  arena->allocated_page = NULL;
+  free(arena->pages_pointers);
+  arena->pages_pointers = NULL;
+  free(arena->arena_start_ptr);
+  arena->pages_pointers = NULL;
+  free(arena);
+  return;
+}
+
+
+void arena_free(Arena_header *arenah){
+  Arena_alloc* a = arenah->first_arena;
+  if(arenah->first_arena->next != NULL){
+    arenah->first_arena = arenah->first_arena->next;
+    arena_free(arenah);
+  }
+  arena_free_area(a);
+  a = NULL;
+  return;
 }
