@@ -9,8 +9,7 @@
 Arena_header arenah = {0};
 
 int main(){
-  arena_create(&arenah,PAGE_SIZE, PAGE_NUMBER);
-
+  NOTY("ARENA ALLOCATOR TEST","Testing allocation with arena system", NULL);
   StringBuilder sb_foo = {0};
 
   static char* lorem = "Lorem ipsum odor amet, consectetuer adipiscing elit. Vivamus placerat suscipit litora quam tortor finibus blandit a praesent? Quisque libero sodales quam sit est turpis. Pharetra rhoncus fringilla senectus convallis tristique nam nostra amet. Platea nam efficitur potenti molestie semper sem maecenas viverra. Posuere odio non eleifend tristique vehicula suspendisse eros morbi.\
@@ -27,7 +26,7 @@ Cursus montes phasellus rhoncus duis placerat congue convallis ullamcorper. Aliq
   sb_foo.string = (char*)arena_alloc(&arenah, sizeof(char)*sb_foo.len);
   strcpy(sb_foo.string, lorem);
 
-  NOTY("STATUS", "String allocated inside the arena: \n\n\n%s", sb_foo.string); 
+  NOTY("STATUS", "String allocated inside the arena: \n\n%s", sb_foo.string); 
   arena_free(&arenah);
   return 0;
 }

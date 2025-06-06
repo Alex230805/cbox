@@ -87,7 +87,7 @@ u8t hexStringConverter(char string[]){
 
 
 void arena_create(Arena_header* arenah, int page_size, int page_count){
-
+  
   Arena_alloc* arena = (Arena_alloc*)malloc(sizeof(Arena_alloc));
   arena->obj = 0;
   arena->pages = page_count;
@@ -123,6 +123,10 @@ void arena_create(Arena_header* arenah, int page_size, int page_count){
 }
 
 void* arena_alloc(Arena_header* arenah, size_t size){
+  if(arenah->arena_count < 1){
+    arena_create(arenah,PAGE_SIZE, PAGE_NUMBER);
+  }
+
   Arena_alloc* arena = arenah->cursor;
 
   if(arena->free_pages < 1){
