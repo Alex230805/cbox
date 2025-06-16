@@ -29,25 +29,24 @@ void gc_push(tb_gc*gc, void* address){
 
 #endif
 
-StringBuilder* read_file(char*path){
+StringBuilder* read_file(Arena_header* ah, char*path){
   if(DEBUG) DINFO("Reading file", NULL); 
   StringBuilder *sb;
-  sb = (StringBuilder*)malloc(sizeof(StringBuilder));
+  sb = (StringBuilder*)arena_alloc(ah,sizeof(StringBuilder));
   FILE * fp;
   fp = fopen(path, "r");
   bool end = false;
   int len = 0;
   if(fp == NULL){
-    fprintf(stderr, "Unable to open instruction file: %s : %d\n", strerror(errno), errno);
-    exit(1);
+    fprintf(stderr, "Unable to open instruction file: %s : %d\n", strerror(errno));
+    exit(errno);
   }
   fseek(fp, 0, SEEK_END);
   sb->len = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  //MALLOC(sizeof(char)*sb->len, sb->string, char*);
-  sb->string = (char*)malloc(sizeof(char)*sb->len);
+  sb->string = (char*)arena_alloc(ah,sizeof(char)*sb->len);
   fread(sb->string,sizeof(char), sb->len,fp);
-  sb->string[len] = '\0'; 
+  sb->string[sb->len] = '\0'; 
   fclose(fp);
   return sb;
 }
@@ -57,8 +56,8 @@ void write_file(StringBuilder *sb, char *path){
   FILE * fp;
   fp = fopen(path, "w");
   if(fp == NULL){
-    fprintf(stderr, "Unable to open instruction file: %s : %d\n", strerror(errno), errno);
-    exit(1);
+    fprintf(stderr, "Unable to open instruction file: %s : %d\n", strerror(errno));
+    exit(errno);
   }
   fwrite(sb->string, 1, sb->len, fp);
   fclose(fp);

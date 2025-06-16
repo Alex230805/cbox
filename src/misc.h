@@ -110,7 +110,7 @@ u8t hexDigitConverter(char s);
 
 // file 
 void write_file(StringBuilder *sb, char *path);
-StringBuilder* read_file(char*path);
+StringBuilder* read_file(Arena_header*ah,char*path);
 
 
 // static declaration
