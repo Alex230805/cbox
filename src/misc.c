@@ -29,24 +29,23 @@ void gc_push(tb_gc*gc, void* address){
 
 #endif
 
-StringBuilder* read_file(Arena_header* ah, char*path){
+StringBuilder* read_file(Arena_header* ah, const char*path){
   if(DEBUG) DINFO("Reading file", NULL); 
   StringBuilder *sb;
+ 
   sb = (StringBuilder*)arena_alloc(ah,sizeof(StringBuilder));
   FILE * fp;
   fp = fopen(path, "r");
-  bool end = false;
-  int len = 0;
   if(fp == NULL){
-    fprintf(stderr, "Unable to open instruction file: %s : %d\n", strerror(errno));
+    fprintf(stderr, "Unable to open instruction file: %s\n", strerror(errno));
     exit(errno);
   }
   fseek(fp, 0, SEEK_END);
   sb->len = ftell(fp);
-  fseek(fp, 0, SEEK_SET);
+  rewind(fp);
   sb->string = (char*)arena_alloc(ah,sizeof(char)*sb->len);
-  fread(sb->string,sizeof(char), sb->len,fp);
-  sb->string[sb->len] = '\0'; 
+  fread(sb->string, sizeof(char), sb->len,fp);
+  sb->string[sb->len] = '\0';
   fclose(fp);
   return sb;
 }
