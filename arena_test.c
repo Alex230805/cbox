@@ -1,8 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define PAGE_SIZE 8 // in bytes 
-#define PAGE_NUMBER 1024 // number of pages per arena. The length of the arena would be PAGE_SIZE*PAGE_NUMBER.
+#define PAGE_SIZE 4 // in bytes   
+#define PAGE_NUMBER 64 // number of pages per arena. The length of the arena would be PAGE_SIZE*PAGE_NUMBER.
+
+
+#define DA_MACRO
 
 #include "misc.h"
 
@@ -23,10 +26,35 @@ Venenatis tempor auctor etiam laoreet curae; eros sodales lobortis. Erat interdu
 Cursus montes phasellus rhoncus duis placerat congue convallis ullamcorper. Aliquet ac mollis suscipit pellentesque faucibus vulputate. Euismod ante placerat torquent placerat fusce cras sociosqu. Lectus lorem enim interdum nullam dictum nascetur accumsan ridiculus. Pellentesque sociosqu potenti primis natoque iaculis leo. Id massa sem sagittis dapibus bibendum posuere parturient est. Quis magna ut nullam curae dui nostra class integer. Semper natoque magnis odio tincidunt imperdiet velit eros torquent erat? Torquent taciti faucibus senectus elementum metus libero.";
 
   sb_foo.len = strlen(lorem);
+  printf("Lorem len: %d\n", sb_foo.len);
   sb_foo.string = (char*)arena_alloc(&arenah, sizeof(char)*sb_foo.len);
   strcpy(sb_foo.string, lorem);
 
-  NOTY("STATUS", "String allocated inside the arena: \n\n%s", sb_foo.string); 
+  printf("Current allocateed array's content: \n\n%s\n", sb_foo.string);
+  
+  NOTY("Dynamic array macro testing", "Testing the dynamic array macros", NULL);
+  char** test_array = {0};
+  #define DEFAULT_SIZE 2;
+  size_t test_size = DEFAULT_SIZE;
+  size_t test_tracker = 0;
+  test_array = (char**)arena_alloc(&arenah,sizeof(char*)*test_size);
+  for(size_t i=0;i<10; i++){
+    char* word = (char*)arena_alloc(&arenah, sizeof(char));
+    *word = i+65;
+    dapush(&arenah, test_array, &test_tracker, &test_size, char*, word);
+  }
+  printf("\nContent of the append: \n");
+  for(size_t i=0;i<test_tracker; i++){
+    printf("cell %zu: %s\n", i, test_array[i]);
+  }
+  printf("\n");
+
+  TODO("Example of todo", NULL);
+  DINFO("Example of debug information", NULL);
+  NOTY("Le noty","Example of notification system", NULL);
+  WARNING("This is a warning, be carefull!!", NULL);
+  ERROR("Example of error", NULL);
+  
   arena_free(&arenah);
   return 0;
 }
