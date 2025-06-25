@@ -128,7 +128,7 @@ void* arena_alloc(Arena_header* arenah, size_t size){
   // number of required pages after normalization
   int page_required = (int)size/ (1+(arena->page_size));
   int size_required = (int)size/ (1+(arena->page_size*arena->pages));
-  if((int)size/ (1+(arena->free_pages*arena->pages)) >= 1){
+  if(page_required > arena->free_pages){
     if(size_required >= 1){
       int new_size = arena->pages;
       int new_page_size = arena->page_size;
