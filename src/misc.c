@@ -169,6 +169,7 @@ void arena_free_area(Arena_alloc* arena){
 
 
 void arena_free(Arena_header *arenah){
+  if(arenah->arena_count < 1) return;
   Arena_alloc* a = arenah->first_arena;
   if(arenah->first_arena->next != NULL){
     arenah->first_arena = arenah->first_arena->next;
