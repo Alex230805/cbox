@@ -126,8 +126,8 @@ void* arena_alloc(Arena_header* arenah, size_t size){
   }
   Arena_alloc* arena = arenah->cursor;
   // number of required pages after normalization
-  int page_required = (int)size/ (1+(arena->page_size));
-  int size_required = (int)size/ (1+(arena->page_size*arena->pages));
+  int page_required = (int) (size/ (arena->page_size));
+  int size_required = (int) (size/ (arena->page_size*arena->pages));
   if(page_required > arena->free_pages){
     if(size_required >= 1){
       int new_size = arena->pages;
@@ -136,11 +136,10 @@ void* arena_alloc(Arena_header* arenah, size_t size){
         new_size*=2;
       }
       arena_create(arenah,new_page_size, new_size);
-      arena = arenah->cursor;
     }else{
       arena_create(arenah,arena->page_size, arena->pages);
-      arena = arenah->cursor;
     }
+    arena = arenah->cursor;
   }
  
   void* pointer = NULL;
