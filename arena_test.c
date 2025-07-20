@@ -4,15 +4,11 @@
 #define PAGE_SIZE 4 // in bytes   
 #define PAGE_NUMBER 64 // number of pages per arena. The length of the arena would be PAGE_SIZE*PAGE_NUMBER.
 
-
-#define DA_MACRO
-
 #include "misc.h"
 
 Arena_header arenah = {0};
 
 int main(){
-  NOTY("ARENA ALLOCATOR TEST","Testing allocation with arena system", NULL);
   StringBuilder sb_foo = {0};
 
   static char* lorem = "Lorem ipsum odor amet, consectetuer adipiscing elit. Vivamus placerat suscipit litora quam tortor finibus blandit a praesent? Quisque libero sodales quam sit est turpis. Pharetra rhoncus fringilla senectus convallis tristique nam nostra amet. Platea nam efficitur potenti molestie semper sem maecenas viverra. Posuere odio non eleifend tristique vehicula suspendisse eros morbi.\
@@ -32,7 +28,6 @@ Cursus montes phasellus rhoncus duis placerat congue convallis ullamcorper. Aliq
 
   printf("Current allocateed array's content: \n\n%s\n", sb_foo.string);
   
-  NOTY("Dynamic array macro testing", "Testing the dynamic array macros", NULL);
   char** test_array = {0};
   #define DEFAULT_SIZE 2;
   size_t test_size = DEFAULT_SIZE;
@@ -48,13 +43,6 @@ Cursus montes phasellus rhoncus duis placerat congue convallis ullamcorper. Aliq
     printf("cell %zu: %s\n", i, test_array[i]);
   }
   printf("\n");
-
-  TODO("Example of todo", NULL);
-  DINFO("Example of debug information", NULL);
-  NOTY("Le noty","Example of notification system", NULL);
-  WARNING("This is a warning, be carefull!!", NULL);
-  ERROR("Example of error", NULL);
-  
   arena_free(&arenah);
   return 0;
 }

@@ -31,8 +31,7 @@ void gc_push(tb_gc*gc, void* address){
 
 StringBuilder* read_file(Arena_header* ah, char*path){
   if(DEBUG) DINFO("Reading file", NULL); 
-  StringBuilder *sb;
- 
+  StringBuilder *sb; 
   sb = (StringBuilder*)arena_alloc(ah,sizeof(StringBuilder));
   FILE * fp;
   fp = fopen(path, "r");
@@ -44,6 +43,7 @@ StringBuilder* read_file(Arena_header* ah, char*path){
   sb->len = ftell(fp);
   rewind(fp);
   sb->string = (char*)arena_alloc(ah,sizeof(char)*sb->len);
+  sb->size = sb->len;
   fread(sb->string, sizeof(char), sb->len,fp);
   sb->string[sb->len] = '\0';
   fclose(fp);
@@ -118,6 +118,27 @@ void arena_create(Arena_header* arenah, int page_size, int page_count){
     arenah->arena_count = 1;
     arenah->cursor = arena;
   }
+}
+
+StringBuilder* sb_alloc(Arena_header* arenah){
+  StringBuilder *sb = (StringBuilder*)arena_alloc(arenah, sizeof(StringBuilder));
+  sb->string = (char*)arena_alloc(arenah, sizeof(char)*DEF_SB_SIZE);
+  sb->size = DEF_SB_SIZE;
+  sb->len = 0;
+  return sb;
+}
+
+void sb_append(Arena_header* arenah, StringBuilder* sb, char* string){
+  int mult_factor = 1;
+  if(strlen(string) > sb->size - sb->len){ 
+    while((sb->size*mult_factor - sb->len) <= strlen(string) ){ mult_factor += 1; }
+    char* buffer = (char*)arena_alloc(arenah, sizeof(char)*sb->size*mult_factor);
+    strcpy(buffer, sb->string);
+    sb->size *= 2;
+    sb->string = buffer;
+  }
+  strcat(sb->string, string);
+  sb->len = strlen(sb->string);
 }
 
 void* arena_alloc(Arena_header* arenah, size_t size){

@@ -18,6 +18,7 @@
 
 #define DEBUG false
 #define POOL_SIZE 1024
+#define DEF_SB_SIZE 256
 
 #if !(defined(PAGE_SIZE) || defined(PAGE_NUMBER))
   
@@ -38,6 +39,7 @@ extern tb_gc general_gc;
 typedef struct{
   char*string;
   int len;
+  size_t size;
 }StringBuilder;
  
 typedef struct Arena_alloc{
@@ -79,7 +81,6 @@ typedef struct{
 #define ARENA_ERROR(string) \
   fprintf(stderr,"[ARENA ALLOCATOR ERROR]: "string"\n");
 
-#ifdef DA_MACRO
 
 #define dapush(arena, arr, tracker, size, cast, obj)\
   do{\
@@ -93,11 +94,8 @@ typedef struct{
       }\
       arr = new_arr;\
       *size = new_size;\
-    }while(0);
-
-#endif
-
-
+    }\
+  }while(0);
 
 #ifdef GC_IMP
 
@@ -128,6 +126,10 @@ u8t hexDigitConverter(char s);
 // file 
 void write_file(StringBuilder *sb, char *path);
 StringBuilder* read_file(Arena_header*ah,char*path);
+
+// structure and data types
+StringBuilder* sb_alloc(Arena_header* arenah);
+void sb_append(Arena_header* arenah, StringBuilder* sb, char* string);
 
 
 // static declaration
