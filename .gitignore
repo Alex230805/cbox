@@ -2,3 +2,4 @@ notify_macro
 string_builder_test
 arena_test
 misc.o
+error_handler_test

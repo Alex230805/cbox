@@ -36,7 +36,7 @@ Cursus montes phasellus rhoncus duis placerat congue convallis ullamcorper. Aliq
   for(size_t i=0;i<10; i++){
     char* word = (char*)arena_alloc(&arenah, sizeof(char));
     *word = i+65;
-    dapush(&arenah, test_array, &test_tracker, &test_size, char*, word);
+    dapush(arenah, test_array, test_tracker, test_size, char*, word);
   }
   printf("\nContent of the append: \n");
   for(size_t i=0;i<test_tracker; i++){

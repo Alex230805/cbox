@@ -199,3 +199,73 @@ void arena_free(Arena_header *arenah){
   a = NULL;
   return;
 }
+
+
+void error_push_error(error_handler *eh, char* error_string, int line_position, size_t error_code, char*source_ptr, int source_line_len){
+	if(eh->size < DEFAULT_ERROR_ARRAY_SIZE){
+		eh->size = DEFAULT_ERROR_ARRAY_SIZE;
+		eh->tracker = 0;
+		eh->error_array = (error_slice**)arena_alloc(&eh->ah,sizeof(error_slice*)*eh->size);
+	}
+	error_slice * es = (error_slice*)arena_alloc(&eh->ah,sizeof(error_slice));
+	es->error_code = error_code;
+	es->line = line_position;
+	es->error = (char*)arena_alloc(&eh->ah, sizeof(char)*strlen(error_string));
+	es->source_ptr = source_ptr;
+	es->source_line_len = source_line_len;
+
+	strcpy(es->error, error_string);
+	dapush(eh->ah, eh->error_array, eh->tracker, eh->size, error_slice*, es);
+}
+
+
+void error_print_error(error_handler *eh, const print_set pp){
+	char *buffer = NULL;
+	for(int i=0; i<eh->tracker;i++){
+		if(pp.pretty_color) fprintf(stderr, "\e[31;49m");
+		error_slice * es = eh->error_array[i];
+		fprintf(stderr,"[ERROR]:");
+		if(pp.include_error_code){
+			fprintf(stderr," return status %d", es->error_code);
+		}
+		if(pp.include_error_line){
+			fprintf(stderr, " in line %d", es->line);
+		}
+		if(	pp.include_error_code == false &&\
+			pp.include_error_line == false &&\
+			pp.pretty_indentation == false &&\
+			pp.pretty_color == false &&\
+			pp.include_reference_line == false &&\
+			pp.include_reference_decoration == false
+		){
+			fprintf(stderr, " ");
+		}else{
+			fprintf(stderr, ": ");
+		}
+		fprintf(stderr, "%s", es->error);
+		
+		
+		if(pp.include_reference_line){
+			buffer = (char*)arena_alloc(&eh->ah,sizeof(char)*es->source_line_len);
+			memcpy(buffer, es->source_ptr, es->source_line_len+1);
+			buffer[es->source_line_len+1] = '\0';		
+			if(pp.pretty_indentation) fprintf(stderr,"\n\t");
+			fprintf(stderr, "%s", buffer);
+			if(pp.include_reference_decoration){
+				fprintf(stderr, "\n\t");
+				for(int i=0;i<es->source_line_len;i++){
+					fprintf(stderr, "^");
+				}
+				fprintf(stderr, "\n");
+			}
+		}
+		if(pp.pretty_color) fprintf(stderr, "\e[0m");
+		fprintf(stderr, "\n");
+	}
+}
+
+
+
+
+
+

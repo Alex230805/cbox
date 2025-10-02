@@ -62,6 +62,35 @@ typedef struct{
 }Arena_header;
 
 
+#define DEFAULT_ERROR_ARRAY_SIZE 64
+
+
+typedef struct{
+	char* error;
+	int line;
+	int error_code;
+	char* source_ptr;
+	int   source_line_len;
+}error_slice;
+
+
+typedef struct{
+	int tracker;
+	int size;
+	error_slice** error_array;
+	Arena_header ah;
+}error_handler;
+
+
+typedef struct{
+	bool include_error_code;
+	bool include_error_line;
+	bool pretty_indentation;
+	bool pretty_color;
+	bool include_reference_line;
+	bool include_reference_decoration;	
+}print_set;
+
 
 #define TODO(string,...) \
   fprintf(stdout,"\e[1;32m[TODO]: "string"\e[0m\n",__VA_ARGS__);    // bold green
@@ -84,16 +113,16 @@ typedef struct{
 
 #define dapush(arena, arr, tracker, size, cast, obj)\
   do{\
-    arr[*tracker] = obj;\
-    *tracker += 1;\
-    if(*tracker == *size){\
-      size_t new_size = *size*2;\
-      cast* new_arr = (cast*)arena_alloc(arena, sizeof(cast)*new_size);\
-      for(size_t dapush_tracker=0;dapush_tracker<*size;dapush_tracker++){\
+    arr[tracker] = obj;\
+    tracker += 1;\
+    if(tracker == size){\
+      size_t new_size = size*2;\
+      cast* new_arr = (cast*)arena_alloc(&arena, sizeof(cast)*new_size);\
+      for(size_t dapush_tracker=0;dapush_tracker<size;dapush_tracker++){\
         new_arr[dapush_tracker] = arr[dapush_tracker];\
       }\
       arr = new_arr;\
-      *size = new_size;\
+      size = new_size;\
     }\
   }while(0);
 
@@ -132,9 +161,10 @@ StringBuilder* sb_alloc(Arena_header* arenah);
 void sb_append(Arena_header* arenah, StringBuilder* sb, char* string);
 
 
-// static declaration
-extern Arena_header arenah;
 
+// error function and error handler 
+void error_push_error(error_handler *eh, char* error_string, int line_position, size_t error_code, char*source_ptr, int source_line_len);
+void error_print_error(error_handler *eh, const print_set pp);
 
 #ifndef MISC_IMP
 #define MISC_IMP
