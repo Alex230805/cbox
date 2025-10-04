@@ -83,6 +83,7 @@ typedef struct{
 
 
 typedef struct{
+	bool error_prefix;
 	bool include_error_code;
 	bool include_error_line;
 	bool pretty_indentation;

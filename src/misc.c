@@ -224,28 +224,25 @@ void error_print_error(error_handler *eh, const print_set pp){
 	for(int i=0; i<eh->tracker;i++){
 		if(pp.pretty_color) fprintf(stderr, "\e[31;49m");
 		error_slice * es = eh->error_array[i];
-		fprintf(stderr,"[ERROR]:");
+		
+		if(pp.error_prefix) fprintf(stderr,"[ERROR]: ");
 		if(pp.include_error_code){
-			fprintf(stderr," return status %d", es->error_code);
+			fprintf(stderr,"return status %d", es->error_code);
 		}
 		if(pp.include_error_line){
-			fprintf(stderr, " in line %d", es->line);
+			fprintf(stderr, "in line %d", es->line);
 		}
-		if(	pp.include_error_code == false &&\
-			pp.include_error_line == false &&\
-			pp.pretty_indentation == false &&\
-			pp.pretty_color == false &&\
-			pp.include_reference_line == false &&\
-			pp.include_reference_decoration == false
-		){
-			fprintf(stderr, " ");
-		}else{
-			fprintf(stderr, ": ");
+
+		if(	pp.include_error_code == true ||\
+			pp.include_error_line == true ||\
+			pp.pretty_indentation == true ||\
+			pp.include_reference_line == true ||\
+			pp.include_reference_decoration == true){
+			fprintf(stderr, ", ");
 		}
-		fprintf(stderr, "%s", es->error);
 		
-		
-		if(pp.include_reference_line){
+		if(es->error != NULL) fprintf(stderr, "%s", es->error);	
+		if(pp.include_reference_line && es->source_ptr != NULL){
 			buffer = (char*)arena_alloc(&eh->ah,sizeof(char)*es->source_line_len);
 			memcpy(buffer, es->source_ptr, es->source_line_len+1);
 			buffer[es->source_line_len+1] = '\0';		
