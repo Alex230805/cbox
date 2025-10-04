@@ -15,12 +15,12 @@ int main(){
 	
 
 	printf("\nPrinting dummy errors with full settings: \n");
-	error_print_error(&eh, (print_set){true,true,true,true, true, true});
+	error_print_error(&eh, (print_set){true, true,true,true,true, true, true});
 	
 	printf("\nPrinting dummy errors with all setting disabled: \n");
-	error_print_error(&eh, (print_set){false, false, false, false, false, false});
+	error_print_error(&eh, (print_set){false, false, false, false, false, false, false});
 	
 	printf("\nPrinting dummy errors without line reference : \n");
-	error_print_error(&eh, (print_set){true,true,true,true, false, false});
+	error_print_error(&eh, (print_set){true, true,true,true,true, false, false});
 	return 0;
 }
