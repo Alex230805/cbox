@@ -93,6 +93,10 @@ typedef struct{
 }print_set;
 
 
+#define TEMP_ALLOC_SIZE 1024*4
+static uint8_t temp_alloc_buffer[TEMP_ALLOC_SIZE];
+static size_t temp_alloc_tracker;
+
 #define TODO(string,...) \
 	fprintf(stdout,"\e[1;32m[TODO]: "string"\e[0m\n",__VA_ARGS__);    // bold green
 
@@ -146,12 +150,12 @@ void* arena_alloc(Arena_header* arenah ,size_t size);
 void arena_free_area(Arena_alloc* arena);
 void arena_free(Arena_header *arenah);
 
+// temp allocator
+void* temp_alloc(size_t size);
 
 // hex digit converter
 u8t hexStringConverter(char string[]);
 u8t hexDigitConverter(char s);
-
-
 
 // file 
 void write_file(StringBuilder *sb, char *path);

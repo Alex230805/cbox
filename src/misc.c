@@ -259,6 +259,17 @@ void arena_free(Arena_header *arenah){
 }
 
 
+void* temp_alloc(size_t size){
+	size_t old_tracker = temp_alloc_tracker;;
+	if(temp_alloc_tracker+size >= TEMP_ALLOC_SIZE){
+		temp_alloc_tracker = 0;
+	}else{
+		temp_alloc_tracker += size;
+	}
+	return (void*)&temp_alloc_buffer[old_tracker];
+}
+
+
 void error_push_error(error_handler *eh, char* error_string, int line_position, size_t error_code, char*source_ptr, int source_line_len){
 	if(eh->size < DEFAULT_ERROR_ARRAY_SIZE){
 		eh->size = DEFAULT_ERROR_ARRAY_SIZE;
