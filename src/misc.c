@@ -262,8 +262,9 @@ void sb_append(StringBuilder* sb, char* string){
 	if(strlen(string) > sb->size - sb->len){ 
 		while((sb->size*mult_factor - sb->len) <= strlen(string) ){ mult_factor += 1; }
 		char* buffer = (char*)malloc(sizeof(char)*(sb->size*mult_factor)+1);
-		memcpy(buffer,sb->string,sizeof(char*)*sb->len);
+		memcpy(buffer, sb->string, strlen(sb->string));
 		sb->size *= mult_factor+1;
+		free(sb->string);
 		sb->string = buffer;
 	}
 	memcpy(&sb->string[sb->len], string, sizeof(char)*strlen(string));
